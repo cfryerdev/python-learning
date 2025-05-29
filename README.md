@@ -4,9 +4,9 @@ A simple microservice API to manage a list of people, built with Python, FastAPI
 
 ## Documentation
 
-- [New to Python](./LEARNING.md)
-- [The Solution](./SOLUTION.md)
-- [Architecture Details](./ARCHITECTURE.md)
+- [New to Python](./.docs/LEARNING.md)
+- [The Solution](./.docs/SOLUTION.md)
+- [Architecture Details](./.docs/ARCHITECTURE.md)
 
 ## Features
 
