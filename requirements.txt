@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+python-dotenv
+databases[sqlite]
+aiosqlite
+asyncio
+
+# For development and testing (optional, but good practice)
+pytest
+httpx
