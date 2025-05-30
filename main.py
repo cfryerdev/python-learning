@@ -26,7 +26,7 @@ app.add_event_handler("shutdown", database.disconnect_db)
 app.include_router(routes.router)
 
 # Root endpoint (can be kept here or moved to its own router if preferred)
-@app.get("/", tags=["Root"], summary="Redirect to API docs", response_class=RedirectResponse)
+@app.get("/", tags=["Root"], summary="Redirect to API docs", response_class=RedirectResponse, include_in_schema=False)
 async def read_root():
     """
     Redirects the root path to the API documentation at /docs.
