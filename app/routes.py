@@ -5,11 +5,15 @@ from fastapi import APIRouter, HTTPException, status
 
 from . import crud, models # Updated to use API models
 
+## ====================================================
+
 router = APIRouter(
     prefix="/people",
     tags=["People"],
     responses={404: {"description": "Not found"}},
 )
+
+## ====================================================
 
 @router.post("/", response_model=models.PersonResponse, status_code=status.HTTP_201_CREATED, summary="Create a new person")
 async def create_person_endpoint(person_data: models.PersonCreateRequest):
@@ -30,6 +34,8 @@ async def create_person_endpoint(person_data: models.PersonCreateRequest):
 
     return await crud.create_person(person_data=person_data)
 
+## ====================================================
+
 @router.get("/", response_model=List[models.PersonResponse], summary="Get all people")
 async def read_people_endpoint(skip: int = 0, limit: int = 100):
     """
@@ -41,6 +47,8 @@ async def read_people_endpoint(skip: int = 0, limit: int = 100):
     """
     people_responses = await crud.get_people(skip=skip, limit=limit)
     return people_responses
+
+## ====================================================
 
 @router.get("/{person_id}", response_model=models.PersonResponse, summary="Get a specific person by ID")
 async def read_person_endpoint(person_id: int):
@@ -55,6 +63,8 @@ async def read_person_endpoint(person_id: int):
     if person_response is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found")
     return person_response
+
+## ====================================================
 
 @router.put("/{person_id}", response_model=models.PersonResponse, summary="Update an existing person")
 async def update_person_endpoint(person_id: int, person_update_input: models.PersonUpdateRequest):
@@ -74,6 +84,8 @@ async def update_person_endpoint(person_id: int, person_update_input: models.Per
         # This implies the person was not found by the crud layer, or an issue occurred during update.
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found or update failed")
     return updated_person_response
+
+## ====================================================
 
 @router.delete("/{person_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a person")
 async def delete_person_endpoint(person_id: int):

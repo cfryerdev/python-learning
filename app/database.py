@@ -4,6 +4,8 @@ import asyncio
 import sqlalchemy
 import databases
 
+## ====================================================
+
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./people.db")
 
 # SQLAlchemy specific parts
@@ -17,6 +19,8 @@ sync_database_url = DATABASE_URL
 if DATABASE_URL.startswith("sqlite+aiosqlite"):
     sync_database_url = DATABASE_URL.replace("sqlite+aiosqlite", "sqlite", 1)
 engine = sqlalchemy.create_engine(sync_database_url)
+
+## ====================================================
 
 async def connect_db():
     """
@@ -35,6 +39,8 @@ async def connect_db():
             connection.commit() # Ensure DDL is committed
     
     await asyncio.to_thread(_create_tables_sync)
+
+## ====================================================
 
 async def disconnect_db():
     """

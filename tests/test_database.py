@@ -9,6 +9,8 @@ from app import database as db_module
 # We'll mark async tests individually instead of using pytestmark
 # This avoids the warning about synchronous tests with asyncio marker
 
+## ====================================================
+
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def manage_db_state_after_tests():
     """
@@ -24,7 +26,7 @@ async def manage_db_state_after_tests():
     # especially regarding environment-dependent global variables.
     importlib.reload(db_module)
 
-
+## ====================================================
 def test_database_url_default(monkeypatch):
     """Test that DATABASE_URL defaults correctly when the env var is not set."""
     monkeypatch.delenv("DATABASE_URL", raising=False)
@@ -32,6 +34,8 @@ def test_database_url_default(monkeypatch):
     
     assert db_module.DATABASE_URL == "sqlite+aiosqlite:///./people.db"
     assert db_module.sync_database_url == "sqlite:///./people.db"
+
+## ====================================================
 
 def test_database_url_from_env_aiosqlite(monkeypatch):
     """Test DATABASE_URL and sync_database_url with an aiosqlite URL from env var."""
@@ -41,6 +45,8 @@ def test_database_url_from_env_aiosqlite(monkeypatch):
     
     assert db_module.DATABASE_URL == test_url
     assert db_module.sync_database_url == "sqlite:///./people.db"
+
+## ====================================================
 
 @pytest.mark.asyncio
 async def test_connect_disconnect_flow():
@@ -67,6 +73,8 @@ async def test_connect_disconnect_flow():
         await test_db_module.disconnect_db()
 
     # This is now handled in the test above
+
+## ====================================================
 
 @pytest.mark.asyncio
 async def test_connect_db_already_connected():
@@ -96,6 +104,8 @@ async def test_connect_db_already_connected():
 
         # Clean up
         await test_db_module.disconnect_db()
+
+## ====================================================
 
 @pytest.mark.asyncio
 async def test_disconnect_db_not_connected():

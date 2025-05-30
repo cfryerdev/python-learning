@@ -10,6 +10,8 @@ from app import models
 from app import crud
 from app.entities import people # For direct table clearing
 
+## ====================================================
+
 @pytest.fixture(scope="session")
 def event_loop():
     """Create an instance of the default event loop for each test session."""
@@ -24,6 +26,8 @@ def event_loop():
     loop = policy.new_event_loop()
     yield loop
     loop.close()
+
+## ====================================================
 
 @pytest_asyncio.fixture(scope="function")
 async def test_db_session() -> AsyncGenerator[None, None]:
@@ -113,6 +117,7 @@ async def test_db_session() -> AsyncGenerator[None, None]:
     from app import entities # Ensure it's in scope if not already
     importlib.reload(entities)
 
+## ====================================================
 
 @pytest_asyncio.fixture(scope="function")
 async def create_person_in_db(test_db_session: None) -> Callable[..., Coroutine[Any, Any, int]]:

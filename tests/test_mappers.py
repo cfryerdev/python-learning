@@ -6,6 +6,7 @@ from app import models
 from app import entities
 from app import mappers
 
+## ====================================================
 
 def test_to_person_entity_from_create():
     """Test mapping PersonCreateRequest to PersonEntity."""
@@ -26,6 +27,7 @@ def test_to_person_entity_from_create():
     assert entity.age == request_model.age
     assert entity.email == request_model.email
 
+## ====================================================
 
 def test_to_person_entity_from_dict():
     """Test mapping a dictionary (e.g., from DB) to PersonEntity."""
@@ -46,6 +48,7 @@ def test_to_person_entity_from_dict():
     assert entity.age == db_row_dict["age"]
     assert entity.email == db_row_dict["email"]
 
+## ====================================================
 
 def test_to_person_entity_from_dict_with_optional_nulls():
     """Test mapping a dictionary with None values for optional fields."""
@@ -66,6 +69,7 @@ def test_to_person_entity_from_dict_with_optional_nulls():
     assert entity.age is None
     assert entity.email is None
 
+## ====================================================
 
 def test_to_person_response_from_entity():
     """Test mapping PersonEntity to PersonResponse."""
@@ -86,6 +90,7 @@ def test_to_person_response_from_entity():
     assert response_model.age == person_entity.age
     assert response_model.email == person_entity.email
 
+## ====================================================
 
 def test_to_update_dict_from_request_all_fields():
     """Test mapping PersonUpdateRequest to a dictionary for DB update (all fields)."""
@@ -106,6 +111,7 @@ def test_to_update_dict_from_request_all_fields():
     }
     assert update_dict == expected_dict
 
+## ====================================================
 
 def test_to_update_dict_from_request_some_fields_none():
     """Test mapping PersonUpdateRequest with some None fields."""
@@ -124,6 +130,7 @@ def test_to_update_dict_from_request_some_fields_none():
     }
     assert update_dict == expected_dict
 
+## ====================================================
 
 def test_to_update_dict_from_request_all_fields_none():
     """Test mapping PersonUpdateRequest with all fields None (empty update)."""
@@ -139,6 +146,7 @@ def test_to_update_dict_from_request_all_fields_none():
     expected_dict = {}
     assert update_dict == expected_dict
 
+## ====================================================
 
 def test_to_update_dict_from_request_no_fields_provided():
     """Test mapping an empty PersonUpdateRequest (no fields explicitly provided)."""

@@ -9,6 +9,8 @@ from app import entities # For direct DB interaction if needed, or type hints
 # The test_db_session fixture from conftest.py needs to be explicitly requested
 # by each test function that needs database access.
 
+## ====================================================
+
 @pytest.mark.asyncio
 async def test_create_person(test_db_session):
     """Test creating a person successfully."""
@@ -33,6 +35,8 @@ async def test_create_person(test_db_session):
     assert retrieved_person is not None
     assert retrieved_person.first_name == person_create_data.first_name
 
+## ====================================================
+
 @pytest.mark.asyncio
 async def test_get_person_exists(test_db_session, create_person_in_db):
     """Test getting an existing person."""
@@ -43,11 +47,15 @@ async def test_get_person_exists(test_db_session, create_person_in_db):
     assert retrieved_person.id == person_id
     assert retrieved_person.first_name == "Existing"
 
+## ====================================================
+
 @pytest.mark.asyncio
 async def test_get_person_not_exists(test_db_session):
     """Test getting a non-existent person."""
     retrieved_person = await crud.get_person(person_id=99999)
     assert retrieved_person is None
+
+## ====================================================
 
 @pytest.mark.asyncio
 async def test_get_people_empty(test_db_session):
@@ -55,6 +63,8 @@ async def test_get_people_empty(test_db_session):
     people_list = await crud.get_people(skip=0, limit=10)
     assert isinstance(people_list, list)
     assert len(people_list) == 0
+
+## ====================================================
 
 @pytest.mark.asyncio
 async def test_get_people_with_data(test_db_session, create_person_in_db):
@@ -82,6 +92,8 @@ async def test_get_people_with_data(test_db_session, create_person_in_db):
     skipped_all = await crud.get_people(skip=3, limit=10)
     assert len(skipped_all) == 0
 
+## ====================================================
+
 @pytest.mark.asyncio
 async def test_update_person_exists(test_db_session, create_person_in_db):
     """Test updating an existing person."""
@@ -106,6 +118,8 @@ async def test_update_person_exists(test_db_session, create_person_in_db):
     assert retrieved_person.age == 55
     assert retrieved_person.email == "updated@example.com"
 
+## ====================================================
+
 @pytest.mark.asyncio
 async def test_update_person_partial_update(test_db_session, create_person_in_db):
     """Test partially updating an existing person (only one field)."""
@@ -120,6 +134,8 @@ async def test_update_person_partial_update(test_db_session, create_person_in_db
     assert updated_person.age == 60 # Unchanged
     assert updated_person.email == "original@example.com" # Unchanged
 
+## ====================================================
+
 @pytest.mark.asyncio
 async def test_update_person_no_actual_change(test_db_session, create_person_in_db):
     """Test updating with an empty update request (no fields to change)."""
@@ -132,12 +148,16 @@ async def test_update_person_no_actual_change(test_db_session, create_person_in_
     assert updated_person.last_name == "Person"
     assert updated_person.age == 70
 
+## ====================================================
+
 @pytest.mark.asyncio
 async def test_update_person_not_exists(test_db_session):
     """Test updating a non-existent person."""
     update_data = models.PersonUpdateRequest(first_name="Ghost")
     updated_person = await crud.update_person(person_id=99999, person_update_data=update_data)
     assert updated_person is None
+
+## ====================================================
 
 @pytest.mark.asyncio
 async def test_delete_person_exists(test_db_session, create_person_in_db):
@@ -150,6 +170,8 @@ async def test_delete_person_exists(test_db_session, create_person_in_db):
     # Verify it's gone
     retrieved_person = await crud.get_person(person_id=person_id)
     assert retrieved_person is None
+
+## ====================================================
 
 @pytest.mark.asyncio
 async def test_delete_person_not_exists(test_db_session):

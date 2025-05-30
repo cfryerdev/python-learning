@@ -7,6 +7,8 @@ from . import entities
 from . import models
 from . import mappers
 
+## ====================================================
+
 async def _get_person_entity(person_id: int) -> Optional[entities.PersonEntity]:
     """Internal helper to fetch a person by ID and map to PersonEntity."""
     query = select(entities.people).where(entities.people.c.id == person_id)
@@ -14,6 +16,8 @@ async def _get_person_entity(person_id: int) -> Optional[entities.PersonEntity]:
     if db_row:
         return mappers.to_person_entity_from_dict(db_row)
     return None
+
+## ====================================================
 
 async def create_person(person_data: models.PersonCreateRequest) -> models.PersonResponse:
     """
@@ -40,6 +44,8 @@ async def create_person(person_data: models.PersonCreateRequest) -> models.Perso
     
     return mappers.to_person_response_from_entity(created_person_entity)
 
+## ====================================================
+
 async def get_person(person_id: int) -> Optional[models.PersonResponse]:
     """
     Retrieves a specific person by their ID and returns it as an API response model.
@@ -54,6 +60,8 @@ async def get_person(person_id: int) -> Optional[models.PersonResponse]:
     if person_entity:
         return mappers.to_person_response_from_entity(person_entity)
     return None
+
+## ====================================================
 
 async def get_people(skip: int = 0, limit: int = 100) -> List[models.PersonResponse]:
     """
@@ -74,6 +82,8 @@ async def get_people(skip: int = 0, limit: int = 100) -> List[models.PersonRespo
         entity = mappers.to_person_entity_from_dict(db_row)
         response_list.append(mappers.to_person_response_from_entity(entity))
     return response_list
+
+## ====================================================
 
 async def update_person(person_id: int, person_update_data: models.PersonUpdateRequest) -> Optional[models.PersonResponse]:
     """
@@ -106,6 +116,8 @@ async def update_person(person_id: int, person_update_data: models.PersonUpdateR
         return None
         
     return mappers.to_person_response_from_entity(updated_person_entity)
+
+## ====================================================
 
 async def delete_person(person_id: int) -> bool:
     """

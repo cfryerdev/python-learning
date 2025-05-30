@@ -5,6 +5,8 @@ import sqlalchemy
 from pydantic import BaseModel
 from .database import metadata
 
+## ====================================================
+
 # Define the 'people' table using the metadata from database.py
 people = sqlalchemy.Table(
     "people",
@@ -16,6 +18,8 @@ people = sqlalchemy.Table(
     sqlalchemy.Column("email", sqlalchemy.String, unique=True, index=True, nullable=True),
     extend_existing=True
 )
+
+## ====================================================
 
 class PersonEntity(BaseModel):
     """Pydantic model representing the 'people' table structure for internal use."""

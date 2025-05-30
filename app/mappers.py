@@ -3,6 +3,8 @@ from typing import Dict, Any, Union, Mapping
 from . import models
 from . import entities
 
+## ====================================================
+
 def to_person_entity_from_create(request_model: models.PersonCreateRequest, generated_id: int) -> entities.PersonEntity:
     """Maps a PersonCreateRequest API model to a PersonEntity database model, including a generated ID."""
     return entities.PersonEntity(
@@ -13,9 +15,13 @@ def to_person_entity_from_create(request_model: models.PersonCreateRequest, gene
         email=request_model.email
     )
 
+## ====================================================
+
 def to_person_entity_from_dict(data: Union[Dict[str, Any], Mapping]) -> entities.PersonEntity:
     """Maps a dictionary (e.g., a database row) to a PersonEntity."""
     return entities.PersonEntity(**data)
+
+## ====================================================
 
 def to_person_response_from_entity(entity: entities.PersonEntity) -> models.PersonResponse:
     """Maps a PersonEntity database model to a PersonResponse API model."""
@@ -26,6 +32,8 @@ def to_person_response_from_entity(entity: entities.PersonEntity) -> models.Pers
         age=entity.age,
         email=entity.email
     )
+
+## ====================================================
 
 def to_update_dict_from_request(request_model: models.PersonUpdateRequest) -> Dict[str, Any]:
     """Converts a PersonUpdateRequest API model to a dictionary for database update operations.
