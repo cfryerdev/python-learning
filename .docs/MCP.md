@@ -194,10 +194,24 @@ The `/mcp/chat` endpoint enables interactive conversations where the LLM can dyn
 
 ```json
 {
-  "user_query": "Please add a new person named Alice Smith who is 28 years old",
+  "user_query": "Please add a new person named Alice Smith who is 28 years old"
+}
+```
+
+You are welcome to pass through conversation history to the LLM to help it understand context.
+
+```json
+{
+  "user_query": "Show me the details of that user",
   "chat_history": [
-    {"role": "user", "content": "Hi, I need to manage some people records"},
-    {"role": "assistant", "content": "I can help you manage people records. What would you like to do?"}
+    {
+      "role": "user",
+      "content": "How many users do we have with the last name Fryer, and whats the ids?"
+    },
+    {
+      "role": "assistant",
+      "content": "There is 1 user with the last name Fryer. The user's ID is 1.\n\n[Used tools: PeopleCRUD_get_all_people]"
+    }
   ]
 }
 ```

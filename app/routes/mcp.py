@@ -107,12 +107,20 @@ async def chat(request: ChatRequest):
             if "SystemPrompt" in kernel.plugins and "get_system_prompt" in kernel.plugins["SystemPrompt"]:
                 system_prompt_function = kernel.plugins["SystemPrompt"]["get_system_prompt"]
                 system_prompt_result = await kernel.invoke(system_prompt_function)
-                system_message = str(system_prompt_result.value)
+                # Check if the result has a value attribute
+                if hasattr(system_prompt_result, 'value'):
+                    # Check if the value is a dict with 'system_prompt' key
+                    if isinstance(system_prompt_result.value, dict) and 'system_prompt' in system_prompt_result.value:
+                        system_message = system_prompt_result.value['system_prompt']
+                    else:
+                        system_message = str(system_prompt_result.value)
+                else:
+                    system_message = str(system_prompt_result)
             else:
-                system_message = "You are a helpful assistant that can answer questions. For this conversation, you do NOT have access to any external tools or databases. Please respond based solely on your knowledge."
+                system_message = "You are a helpful assistant with access to tools. Analyze the user's question and use the appropriate tools when needed to get information."
         except Exception as e:
             print(f"Error getting system prompt: {e}")
-            system_message = "You are a helpful assistant that can answer questions. For this conversation, you do NOT have access to any external tools or databases. Please respond based solely on your knowledge."
+            system_message = "You are a helpful assistant with access to tools. Analyze the user's question and use the appropriate tools when needed to get information."
 
         # 2. Prepare the conversation history as a simple formatted string
         conversation = f"System: {system_message}\n\n"
@@ -140,15 +148,23 @@ async def chat(request: ChatRequest):
                 "properties": {}
             }
             
+            # Handle parameters properly
             for param in func_metadata.parameters:
-                parameters["properties"][param.name] = {"type": "string", "description": param.description}
+                # Set default type to string if not specified
+                param_type = "string"
+                
+                # Add the parameter with proper type and description
+                parameters["properties"][param.name] = {
+                    "type": param_type,
+                    "description": param.description or f"Parameter {param.name}"
+                }
             
-            # Create the tool definition
+            # Create the tool definition with proper schema
             tools.append({
                 "type": "function",
                 "function": {
                     "name": f"{plugin.name}_{func_name}",
-                    "description": func_metadata.description,
+                    "description": func_metadata.description or f"Function to {func_name}",
                     "parameters": parameters
                 }
             })
@@ -194,17 +210,30 @@ async def chat(request: ChatRequest):
                     # Get the function from the plugin
                     kernel_function = kernel.plugins[plugin_name][func_name]
                     
-                    # Convert arguments to KernelArguments
-                    kernel_args = KernelArguments(**function_args)
+                    # Process arguments to ensure correct types
+                    processed_args = {}
+                    for param_name, param_value in function_args.items():
+                        # For now, we'll just ensure strings are strings and handle nulls
+                        if param_value is None:
+                            processed_args[param_name] = ""
+                        else:
+                            processed_args[param_name] = str(param_value)
+                    
+                    # Convert processed arguments to KernelArguments
+                    kernel_args = KernelArguments(**processed_args)
                     
                     # Call the function
                     try:
                         result = await kernel.invoke(kernel_function, arguments=kernel_args)
                         if hasattr(result, 'value'):
-                            tool_result = str(result.value)
+                            if result.value is None:
+                                tool_result = "Operation completed successfully."
+                            else:
+                                tool_result = str(result.value)
                         else:
                             tool_result = str(result)
                     except Exception as e:
+                        print(f"Error executing {plugin_name}.{func_name}: {str(e)}")
                         tool_result = f"Error executing function: {str(e)}"
                 else:
                     tool_result = f"Function {plugin_name}.{func_name} not found"
