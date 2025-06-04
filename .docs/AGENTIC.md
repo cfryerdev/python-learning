@@ -1,7 +1,10 @@
 # Agentic Microservices
 
 This is an example of an agentic microservice, where the API exposes plugins and functions for an Agent to call, but also comes with its own
-agent through a chat interface, mainly for testing.
+agent through a chat interface, mainly for testing. The agentic microservice architecture is a design pattern that allows for the creation of 
+autonomous agents that can perform tasks on behalf of users. It is a variation of the microservices architecture, where each microservice is 
+an agent that can perform tasks on behalf of users.
+
 
 ## What is an agent?
 
@@ -22,5 +25,7 @@ An agent is a program that can act on behalf of a user. It can be a chatbot, a v
 - Adaptive: They can adjust their approach based on feedback, errors, or changing requirements
 
 ## Agentic Architectures
+
+This solution works with various agentic architectures, such as 
 
 <img src="./agentic_architectures.jpeg" alt="Agentic Architectures">
