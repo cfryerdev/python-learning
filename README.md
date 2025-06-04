@@ -4,12 +4,12 @@ A simple agentic microservice API to manage a list of people, built with Python,
 
 ## Documentation
 
-- [New to Python](./.docs/LEARNING.md)
-- [The Solution](./.docs/SOLUTION.md)
-- [LLM Integration](./.docs/LLM.md)
-- [MCP Integration](./.docs/MCP.md)
-- [Agentic Microservices](./.docs/AGENTIC.md)
-- [Architecture Details](./.docs/ARCHITECTURE.md)
+- [New to Python](./.docs/LEARNING.md) - Learning Python? Start here...
+- [The Solution](./.docs/SOLUTION.md) - The solution to the problem
+- [Integration](./.docs/INTEGRATION.md) - Integrating the solution with AI platforms like Claude Desktop and Azure AI
+- [LLM Integration](./.docs/LLM.md) - More information about the LLM integration (OpenAI & Semantic Kernel)
+- [MCP Integration](./.docs/MCP.md) - All things MCP
+- [Architecture Details](./.docs/ARCHITECTURE.md) - The architecture of the solution
 
 ## Features
 

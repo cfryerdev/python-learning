@@ -6,32 +6,52 @@ This document provides an overview of the project structure, detailing the purpo
 
 ```
 .
-├── .docs/                      # Project documentation and design documents.
-│   ├── ARCHITECTURE.md         # Overview of the system architecture.
-│   ├── FUNCTIONS.md            # Detailed description of key functions.
-│   ├── LEARNING.md             # Notes and learnings during development.
-│   └── SOLUTION.md             # This file: project structure and overview.
-├── .env                        # Environment variables (e.g., database URL, API keys). (Gitignored)
-├── .venv/                      # Python virtual environment directory. (Gitignored)
-├── README.md                   # Main project documentation, setup, and usage instructions.
-├── app/                        # Core application logic.
-│   ├── __init__.py             # Makes the 'app' directory a Python package.
-│   ├── crud.py                 # Contains CRUD (Create, Read, Update, Delete) database operations.
-│   ├── database.py             # Database connection setup, engine, and session management.
-│   ├── entities.py             # SQLAlchemy table definitions (schema for database tables).
-│   ├── mappers.py              # Functions for mapping between Pydantic models and SQLAlchemy entities.
-│   ├── models.py               # Pydantic models for request/response validation and serialization.
-│   └── routes.py               # FastAPI router definitions, API endpoints, and request handling.
-├── main.py                     # Main FastAPI application entry point. Initializes the app and includes routers.
-├── people.db                   # Default SQLite database file. (Gitignored)
-├── pytest.ini                  # Configuration file for pytest, e.g., setting asyncio mode.
-├── requirements.txt            # Lists project dependencies for pip.
-└── tests/                      # Contains all automated tests for the application.
-    ├── __init__.py             # Makes the 'tests' directory a Python package.
-    ├── conftest.py             # Pytest fixtures and configuration shared across tests.
-    ├── test_crud.py            # Unit tests for CRUD operations defined in app/crud.py.
-    ├── test_database.py        # Unit tests for database connection and utility functions.
-    └── test_mappers.py         # Unit tests for mapping functions in app/mappers.py.
+├── .docs/                                  # Project documentation and design documents
+│   ├── AGENTIC.md                          # Description of agentic microservices concept
+│   ├── ARCHITECTURE.md                     # Overview of the system architecture
+│   ├── FUNCTIONS.md                        # Detailed description of key functions
+│   ├── INTEGRATION.md                      # Guide for integrating MCP with AI platforms
+│   ├── LEARNING.md                         # Notes and learnings during development
+│   ├── LLM.md                              # Documentation for LLM integration
+│   ├── MCP.md                              # Model Context Protocol documentation
+│   └── SOLUTION.md                         # This file: project structure and overview
+├── .env                                    # Environment variables (e.g., database URL, API keys) (Gitignored)
+├── .venv/                                  # Python virtual environment directory (Gitignored)
+├── README.md                               # Main project documentation, setup, and usage instructions
+├── app/                                    # Core application logic
+│   ├── __init__.py                         # Makes the 'app' directory a Python package
+│   ├── crud.py                             # Contains CRUD database operations
+│   ├── database.py                         # Database connection setup, engine, and session management
+│   ├── entities.py                         # SQLAlchemy table definitions (schema for database tables)
+│   ├── llm.py                              # LLM integration with Semantic Kernel setup
+│   ├── mappers.py                          # Functions for mapping between Pydantic models and SQLAlchemy entities
+│   ├── models.py                           # Pydantic models for request/response validation and serialization
+│   ├── plugins/                            # Semantic Kernel plugins for MCP functionality
+│   │   ├── __init__.py                     # Makes plugins directory a Python package
+│   │   ├── functions/                      # Individual function implementations for plugins
+│   │   │   ├── __init__.py                 # Makes functions directory a Python package
+│   │   │   ├── create_person_function.py   # Function to create a person via MCP
+│   │   │   ├── delete_person_function.py   # Function to delete a person via MCP
+│   │   │   ├── get_people_function.py      # Function to list people via MCP
+│   │   │   ├── get_person_function.py      # Function to get a specific person via MCP
+│   │   │   └── update_person_function.py   # Function to update a person via MCP
+│   │   ├── people_crud_plugin.py           # Plugin that exposes CRUD operations to LLMs
+│   │   └── system_prompt_plugin.py         # Plugin that provides system prompts for LLMs
+│   └── routes/                             # API router modules
+│       ├── __init__.py                     # Makes the 'routes' directory a Python package
+│       ├── api.py                          # FastAPI router for people CRUD endpoints
+│       ├── health.py                       # Health check endpoints
+│       └── mcp.py                          # Model Context Protocol endpoints
+├── main.py                                 # Main FastAPI application entry point
+├── people.db                               # Default SQLite database file (Gitignored)
+├── pytest.ini                              # Configuration file for pytest
+├── requirements.txt                        # Lists project dependencies for pip
+└── tests/                                  # Contains all automated tests for the application
+    ├── __init__.py                         # Makes the 'tests' directory a Python package
+    ├── conftest.py                         # Pytest fixtures and configuration shared across tests
+    ├── test_crud.py                        # Unit tests for CRUD operations
+    ├── test_database.py                    # Unit tests for database connection and utility functions
+    └── test_mappers.py                     # Unit tests for mapping functions
 ```
 
 ## Directory and File Descriptions
@@ -48,8 +68,40 @@ This document provides an overview of the project structure, detailing the purpo
     *   **FUNCTIONS.md**: Provides detailed explanations of important functions within the codebase.
     *   **LEARNING.md**: A collection of notes, insights, and learnings gathered during the development process.
     *   **SOLUTION.md**: This document, providing an overview of the project structure and file descriptions.
+    *   **MCP.md**: Documentation about the Model Context Protocol implemented in the project.
+    *   **INTEGRATION.md**: Guide for integrating the MCP with various AI platforms like OpenAI, Azure, and Claude.
+    *   **LLM.md**: Details on the LLM integration aspects of the project.
+    *   **AGENTIC.md**: Explanation of the agentic microservices concept and implementation.
 *   **.env**: Stores environment-specific variables, such as database connection strings, API keys, or secret keys. This file is gitignored to prevent sensitive information from being committed to version control.
 *   **people.db**: The default SQLite database file used by the application when not running in test mode or when a specific `DATABASE_URL` is not provided via the `.env` file. This file is typically gitignored.
+
+### App Directory
+
+*   **app/__init__.py**: Makes the `app` directory a Python package.
+*   **app/database.py**: Handles the database connection setup, creates engine instances, and provides session management functions.
+*   **app/entities.py**: Contains SQLAlchemy table definitions for the database schema (currently just the `people` table).
+*   **app/models.py**: Defines Pydantic models for API request/response validation and serialization, as well as models for MCP integrations.
+*   **app/mappers.py**: Provides utility functions for mapping between Pydantic models and SQLAlchemy entities.
+*   **app/crud.py**: Implements CRUD operations for the `people` table.
+*   **app/llm.py**: Sets up Semantic Kernel with OpenAI integration, loads plugins, and provides functions for LLM interactions.
+
+*   **app/routes/**: Directory containing the API router modules.
+    *   **app/routes/api.py**: Implements REST API endpoints for the `/people` resource.
+    *   **app/routes/health.py**: Provides health check and status endpoints.
+    *   **app/routes/mcp.py**: Implements the Model Context Protocol endpoints for AI integrations.
+
+*   **app/plugins/**: Directory containing Semantic Kernel plugins and their functions.
+    *   **app/plugins/people_crud_plugin.py**: Plugin that exposes CRUD operations to LLMs via Semantic Kernel.
+    *   **app/plugins/system_prompt_plugin.py**: Plugin that provides system prompts for LLM guidance.
+    *   **app/plugins/functions/**: Directory with individual function implementations for the plugins.
+
+### Tests Directory
+
+*   **tests/__init__.py**: Makes the `tests` directory a Python package.
+*   **tests/conftest.py**: Contains common pytest fixtures and configurations used across multiple test files.
+*   **tests/test_crud.py**: Unit tests for the CRUD operations in `app/crud.py`.
+*   **tests/test_database.py**: Unit tests for database connection and utility functions.
+*   **tests/test_mappers.py**: Unit tests for mapping functions in `app/mappers.py`.
 
 ### app/ Directory
 
