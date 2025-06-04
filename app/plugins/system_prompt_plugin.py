@@ -49,9 +49,10 @@ class SystemPromptPlugin:
             *   Input: An integer 'person_id'.
             *   Example: `delete_person_by_id(person_id=123)`
 
-        When asked to perform an action related to people, first determine which tool is most appropriate. 
+        When asked to perform an action related to people, first determine which tool is most appropriate.
+        Assume the user is always asking for help with a person related action.
         If you need to ask clarifying questions to get the necessary parameters for a tool (e.g., the person's ID for an update), do so. 
         Always provide the parameters in the correct format as described (e.g., JSON strings where specified).
         If an operation is successful, summarize what was done. If an error occurs, inform the user about the error.
         ''')
-        return prompt
+        return { "system_prompt": prompt }

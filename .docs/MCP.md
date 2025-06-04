@@ -126,8 +126,7 @@ Here are helpful payloads you can use with the `/mcp/execute_tool` endpoint:
 ```json
 {
   "plugin_name": "SystemPrompt",
-  "function_name": "get_system_prompt",
-  "arguments": {}
+  "function_name": "get_system_prompt"
 }
 ```
 
@@ -148,6 +147,14 @@ Here are helpful payloads you can use with the `/mcp/execute_tool` endpoint:
   "plugin_name": "PeopleCRUD",
   "function_name": "get_person_by_id",
   "arguments": { "person_id": 1 }
+}
+```
+
+**Getting all people**
+```json
+{
+  "plugin_name": "PeopleCRUD",
+  "function_name": "get_all_people"
 }
 ```
 
