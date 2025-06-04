@@ -1,4 +1,5 @@
 # app/routes/mcp.py
+from typing import Any # Added
 from fastapi import APIRouter, status, HTTPException
 
 from semantic_kernel.contents import ChatHistory, ChatMessageContent
@@ -44,7 +45,7 @@ async def mcp_availability():
 
 ## ====================================================
 
-@router.post("/execute_tool", response_model=dict, status_code=status.HTTP_200_OK, summary="Execute a specific tool function")
+@router.post("/execute_tool", response_model=Any, status_code=status.HTTP_200_OK, summary="Execute a specific tool function") # Changed response_model to Any
 async def execute_tool(request: ExecuteToolRequest):
     """
     Executes a specific function from a Semantic Kernel plugin.
@@ -52,7 +53,7 @@ async def execute_tool(request: ExecuteToolRequest):
     - **plugin_name**: The name of the plugin.
     - **function_name**: The name of the function within the plugin.
     - **arguments**: A dictionary of arguments to pass to the function.
-    - **Returns**: A JSON object with the plugin name, function name, and the result of the execution.
+    - **Returns**: The direct result of the executed plugin function.
     """
     try:
         if not kernel.plugins:
@@ -81,11 +82,7 @@ async def execute_tool(request: ExecuteToolRequest):
         if not isinstance(response_value, (str, int, float, bool, dict, list, type(None))):
             response_value = str(response_value)
             
-        return {
-            "plugin_name": request.plugin_name, 
-            "function_name": request.function_name, 
-            "result": response_value
-        }
+        return response_value # Changed: Return the direct value
         
     except HTTPException: # Re-raise HTTPExceptions directly
         raise

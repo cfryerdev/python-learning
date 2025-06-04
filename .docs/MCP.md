@@ -122,8 +122,6 @@ Provides system prompts for the LLM.
 
 Here are helpful payloads you can use with the `/mcp/execute_tool` endpoint:
 
-### SystemPrompt Plugin
-
 **Getting the system prompt**
 ```json
 {
@@ -132,8 +130,6 @@ Here are helpful payloads you can use with the `/mcp/execute_tool` endpoint:
   "arguments": {}
 }
 ```
-
-### PeopleCRUD Plugin
 
 **Creating a new person**
 ```json
