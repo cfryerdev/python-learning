@@ -17,6 +17,8 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+## ====================================================
+
 @router.get("/", response_model=dict, status_code=status.HTTP_200_OK, summary="MCP Availability and Plugin Details")
 async def mcp_availability():
     """
@@ -28,11 +30,11 @@ async def mcp_availability():
             functions_details = []
             for func_name, func_metadata in plugin.functions.items():
                 functions_details.append({
-                    "name": func_metadata.name,
+                    "name": func_name,
                     "description": func_metadata.description,
-                    # You could also add parameters here if needed:
-                    # "parameters": [p.name for p in func_metadata.parameters]
+                    "parameters": [p.name for p in func_metadata.parameters]
                 })
+            
             plugins_details.append({
                 "name": plugin_name,
                 "functions": functions_details
@@ -98,8 +100,8 @@ async def execute_tool(request: ExecuteToolRequest):
 @router.post("/chat", summary="Chat with LLM using Semantic Kernel and tools")
 async def chat(request: ChatRequest):
     try:
-        # 1. Get the system prompt from the SystemGuide plugin
-        system_prompt_function = kernel.plugins["SystemGuide"]["get_system_prompt"]
+        # 1. Get the system prompt from the SystemPrompt plugin
+        system_prompt_function = kernel.plugins["SystemPrompt"]["get_system_prompt"]
         system_prompt_result = await kernel.invoke(system_prompt_function)
         system_message = str(system_prompt_result.value)
 

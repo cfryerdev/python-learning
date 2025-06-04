@@ -1,24 +1,17 @@
 # app/plugins/get_person_plugin.py
 import json
-# from typing import Optional, List # Not strictly needed for this specific plugin
 
-from semantic_kernel.functions.kernel_function_decorator import kernel_function
 from semantic_kernel.functions.kernel_parameter_metadata import KernelParameterMetadata
 
-from .. import crud
-# from .. import models # Not strictly needed as model_dump() is on the instance
+from app import crud
 
 ## ====================================================
 
-class GetPersonPlugin:
+class GetPersonFunction:
     """
     Plugin for retrieving a specific person by their ID.
     """
 
-    @kernel_function(
-        description="Retrieves a specific person by their unique ID.",
-        name="get_person_by_id"
-    )
     async def get_person_by_id_async(
         self,
         person_id: KernelParameterMetadata(

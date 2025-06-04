@@ -55,11 +55,3 @@ class SystemPromptPlugin:
         If an operation is successful, summarize what was done. If an error occurs, inform the user about the error.
         ''')
         return prompt
-
-# Example of how this might be loaded (for context, not part of this file's direct execution):
-# from semantic_kernel import Kernel
-# kernel = Kernel()
-# system_prompt_plugin = SystemPromptPlugin()
-# kernel.add_plugin(system_prompt_plugin, plugin_name="SystemGuide")
-# system_message = await kernel.invoke(kernel.get_function("SystemGuide", "get_system_prompt"))
-# print(system_message.value)

@@ -5,19 +5,13 @@ from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import OpenAIChatCompletion
 
 # Import plugins
-from .plugins.create_person_plugin import CreatePersonPlugin
-from .plugins.get_person_plugin import GetPersonPlugin
-from .plugins.get_people_plugin import GetPeoplePlugin
-from .plugins.update_person_plugin import UpdatePersonPlugin
-from .plugins.delete_person_plugin import DeletePersonPlugin
+from .plugins.people_crud_plugin import PeopleCRUDPlugin
 from .plugins.system_prompt_plugin import SystemPromptPlugin
 
 ## ====================================================
 
-# Initialize OpenAI client (for direct calls, if still needed)
-# Environment variables are expected to be loaded by the main application entry point (main.py)
+# Initialize OpenAI client and Semantic Kernel
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 kernel = Kernel()
 kernel.add_service(
     OpenAIChatCompletion(
@@ -30,16 +24,8 @@ kernel.add_service(
 ## ====================================================
 
 # Load plugins into the kernel
-
-# Add each plugin directly to the kernel with the plugin_name="PeopleCRUD"
-kernel.add_plugin(CreatePersonPlugin(), plugin_name="PeopleCRUD")
-kernel.add_plugin(GetPersonPlugin(), plugin_name="PeopleCRUD")
-kernel.add_plugin(GetPeoplePlugin(), plugin_name="PeopleCRUD")
-kernel.add_plugin(UpdatePersonPlugin(), plugin_name="PeopleCRUD")
-kernel.add_plugin(DeletePersonPlugin(), plugin_name="PeopleCRUD")
-
-# Add the SystemPromptPlugin separately
-kernel.add_plugin(SystemPromptPlugin(), plugin_name="SystemGuide")
+kernel.add_plugin(PeopleCRUDPlugin(), plugin_name="PeopleCRUD")
+kernel.add_plugin(SystemPromptPlugin(), plugin_name="SystemPrompt")
 
 ## ====================================================
 

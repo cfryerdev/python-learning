@@ -1,24 +1,17 @@
 # app/plugins/get_people_plugin.py
 import json
-# from typing import Optional, List # List is used in crud.get_people, but not directly in this plugin's type hints for SK
 
-from semantic_kernel.functions.kernel_function_decorator import kernel_function
 from semantic_kernel.functions.kernel_parameter_metadata import KernelParameterMetadata
 
-from .. import crud
-# from .. import models # Not strictly needed as model_dump() is on the instance
+from app import crud
 
 ## ====================================================
 
-class GetPeoplePlugin:
+class GetPeopleFunction:
     """
     Plugin for retrieving a list of people, with optional pagination.
     """
 
-    @kernel_function(
-        description="Retrieves a list of people. Supports pagination with 'skip' and 'limit'.",
-        name="get_all_people"
-    )
     async def get_all_people_async(
         self,
         skip: KernelParameterMetadata(

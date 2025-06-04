@@ -1,24 +1,17 @@
 # app/plugins/delete_person_plugin.py
 import json
-# from typing import Optional, List
 
-from semantic_kernel.functions.kernel_function_decorator import kernel_function
 from semantic_kernel.functions.kernel_parameter_metadata import KernelParameterMetadata
 
-from .. import crud
-# from .. import models # Not strictly needed for this specific plugin's response
+from app import crud
 
 ## ====================================================
 
-class DeletePersonPlugin:
+class DeletePersonFunction:
     """
     Plugin for deleting a person by their ID.
     """
 
-    @kernel_function(
-        description="Deletes a person by their unique ID.",
-        name="delete_person_by_id"
-    )
     async def delete_person_by_id_async(
         self,
         person_id: KernelParameterMetadata(

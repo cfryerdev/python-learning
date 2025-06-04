@@ -1,26 +1,18 @@
 # app/plugins/update_person_plugin.py
 import json
-# from typing import Optional, List
 
-from semantic_kernel.functions.kernel_function_decorator import kernel_function
 from semantic_kernel.functions.kernel_parameter_metadata import KernelParameterMetadata
 
-from .. import crud
-from .. import models
+from app import crud
+from app import models
 
 ## ====================================================
 
-class UpdatePersonPlugin:
+class UpdatePersonFunction:
     """
     Plugin for updating an existing person by their ID.
     """
 
-    @kernel_function(
-        description="Updates an existing person by their unique ID. "
-                    "Requires the person's ID and a JSON string of fields to update. "
-                    "Fields can include 'first_name', 'last_name', 'age', 'email'. All fields are optional in the update data.",
-        name="update_person_by_id"
-    )
     async def update_person_by_id_async(
         self,
         person_id: KernelParameterMetadata(

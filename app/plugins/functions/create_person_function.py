@@ -1,28 +1,19 @@
 # app/plugins/create_person_plugin.py
 import json
-# from typing import Optional, List # Not strictly needed for this specific plugin
 
-from semantic_kernel.functions.kernel_function_decorator import kernel_function
 from semantic_kernel.functions.kernel_parameter_metadata import KernelParameterMetadata
 
-from .. import crud
-from .. import models
+from app import crud
+from app import models
 
 ## ====================================================
 
-class CreatePersonPlugin:
+class CreatePersonFunction:
     """
     Plugin for creating a new person in the system.
     The LLM can use this to add new people to the database.
     """
 
-    @kernel_function(
-        description="Creates a new person in the system. "
-                    "The input must be a JSON string representing the person's data, "
-                    "including 'first_name' (string, required), 'last_name' (string, required), "
-                    "'age' (integer, optional), and 'email' (string, optional, must be unique if provided).",
-        name="create_person"
-    )
     async def create_person_from_json_async(
         self,
         person_data_json: KernelParameterMetadata(
