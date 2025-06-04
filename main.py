@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from app import database  # Assuming database.py has connect_db and disconnect_db
-from app import routes # Assuming routes.py has a router instance
+from app import database
+from app.routes import api, health, mcp
 
 ## ====================================================
 
@@ -31,7 +31,9 @@ app.add_event_handler("shutdown", database.disconnect_db)
 ## ====================================================
 
 # Include the routers
-app.include_router(routes.router)
+app.include_router(api.router)
+app.include_router(health.router)
+app.include_router(mcp.router)
 
 ## ====================================================
 

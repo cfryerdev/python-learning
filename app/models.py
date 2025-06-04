@@ -4,6 +4,17 @@ from pydantic import BaseModel, Field, ConfigDict
 
 ## ====================================================
 
+class ChatRequest(BaseModel):
+    user_query: str
+    chat_history: list[dict[str, str]] = []
+
+class ExecuteToolRequest(BaseModel):
+    plugin_name: str
+    function_name: str
+    arguments: dict = {}
+
+## ====================================================
+
 class PersonBaseModel(BaseModel):
     """Base model for person attributes, used for sharing common fields."""
     first_name: str = Field(..., min_length=1, max_length=50, description="Person's first name")

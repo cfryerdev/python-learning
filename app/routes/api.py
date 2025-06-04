@@ -1,9 +1,9 @@
-# app/routes.py
+# app/routes/api.py
 from typing import List
 
 from fastapi import APIRouter, HTTPException, status
 
-from . import crud, models # Updated to use API models
+from .. import crud, models
 
 ## ====================================================
 

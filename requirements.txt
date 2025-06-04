@@ -3,6 +3,8 @@ uvicorn[standard]
 sqlalchemy
 pydantic
 python-dotenv
+openai
+semantic-kernel>=1.0.0
 databases[sqlite]
 aiosqlite
 asyncio
