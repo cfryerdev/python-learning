@@ -1,6 +1,6 @@
-# People API
+# People Agentic Microservice API
 
-A simple microservice API to manage a list of people, built with Python, FastAPI, and SQLite.
+A simple agentic microservice API to manage a list of people, built with Python, FastAPI, and SQLite.
 
 ## Documentation
 
@@ -8,6 +8,7 @@ A simple microservice API to manage a list of people, built with Python, FastAPI
 - [The Solution](./.docs/SOLUTION.md)
 - [LLM Integration](./.docs/LLM.md)
 - [MCP Integration](./.docs/MCP.md)
+- [Agentic Microservices](./.docs/AGENTIC.md)
 - [Architecture Details](./.docs/ARCHITECTURE.md)
 
 ## Features
