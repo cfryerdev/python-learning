@@ -11,6 +11,68 @@ The Model Context Protocol (MCP) is a standardized interface for AI language mod
 
 This implementation uses Semantic Kernel's plugin architecture to expose functionality to large language models (LLMs), enabling them to perform actions like creating, retrieving, updating, and deleting people records through a well-defined API.
 
+## Available MCP Endpoints
+
+An MCP server typically exposes the following standard endpoint types:
+
+1. **Core Endpoints**:
+   - `/mcp/initialize`: Establishes initial connection with client information
+   - `/mcp/tools/list`: Returns available tools and functions in the MCP
+   - `/mcp/tools/call`: Executes specific tool functions
+
+2. **Notification Endpoints**:
+   - `/mcp/notifications/initialized`: Handles client initialization notifications
+   - `/mcp/notifications/cancelled`: Processes request cancellation notifications
+
+3. **Resource Endpoints**:
+   - `/mcp/resources/list`: Provides access to available resources
+   - `/mcp/prompts/list`: Returns available prompts for LLMs
+
+4. **Chat Endpoints**:
+   - `/mcp/chat`: Enables interactive conversations where the LLM can use tools dynamically
+
+These standardized endpoints create a consistent interface for AI models to communicate with external services and access functionality beyond their training data.
+
+### MCP Endpoint Flow for Chat Interactions
+
+The following diagram illustrates the typical flow of endpoint calls when interacting with a chatbot that uses MCP:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant MCP Server
+    participant LLM
+    participant Tools
+    
+    Note over Client,Tools: Connection Setup Phase
+    Client->>MCP Server: POST /mcp/initialize
+    MCP Server-->>Client: Return server capabilities
+    Client->>MCP Server: POST /mcp/notifications/initialized
+    
+    Note over Client,Tools: Tool Discovery Phase
+    Client->>MCP Server: POST /mcp/tools/list
+    MCP Server-->>Client: Return available tools
+    Client->>MCP Server: POST /mcp/prompts/list
+    MCP Server-->>Client: Return available prompts
+    
+    Note over Client,Tools: Chat Interaction Phase
+    Client->>MCP Server: POST /mcp/chat (user query)
+    MCP Server->>LLM: Send user query + context
+    
+    alt LLM needs to use a tool
+        LLM->>MCP Server: Request tool usage
+        MCP Server->>Tools: POST /mcp/tools/call
+        Tools-->>MCP Server: Return tool execution result
+        MCP Server->>LLM: Provide tool result
+    end
+    
+    LLM-->>MCP Server: Generate response
+    MCP Server-->>Client: Return LLM response
+    
+```
+
+This diagram shows how a client application interacts with an MCP server during a chat session, including the initialization process, tool discovery, and the dynamic use of tools during conversation.
+
 ## API Endpoints
 
 ### Core MCP Endpoints
