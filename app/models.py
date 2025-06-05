@@ -1,5 +1,5 @@
 # app/models.py
-from typing import Optional
+from typing import Any, Optional, Dict, List
 from pydantic import BaseModel, Field, ConfigDict
 
 ## ====================================================
@@ -48,3 +48,68 @@ class PersonResponse(PersonBaseModel):
     """Model for API responses when returning person data."""
     id: int = Field(..., description="Unique identifier for the person")
     model_config = ConfigDict(from_attributes=True)
+
+## ====================================================
+
+class MCPParameter(BaseModel):
+    name: str
+    description: str
+    required: bool = False
+
+## ====================================================
+
+class MCPFunction(BaseModel):
+    name: str
+    description: str
+    parameters: List[MCPParameter]
+
+## ====================================================
+
+class MCPPlugin(BaseModel):
+    name: str
+    description: str = ""
+    functions: List[MCPFunction]
+
+## ====================================================
+
+class MCPClientInfo(BaseModel):
+    name: str
+    version: str
+
+## ====================================================
+
+class MCPInitializeParams(BaseModel):
+    protocolVersion: str = "2024-11-05"
+    capabilities: Dict[str, Any] = Field(default_factory=dict)
+    clientInfo: MCPClientInfo
+
+## ====================================================
+
+class MCPInitializeRequest(BaseModel):
+    method: str
+    params: MCPInitializeParams
+    id: Optional[int] = None
+    jsonrpc: str = "2.0"
+
+## ====================================================
+
+class MCPToolCallParams(BaseModel):
+    name: str
+    plugin: Optional[str] = None
+    arguments: Dict[str, Any] = Field(default_factory=dict)
+
+## ====================================================
+
+class MCPToolCallRequest(BaseModel):
+    method: str
+    params: MCPToolCallParams
+    id: Optional[int] = None
+    jsonrpc: str = "2.0"
+
+## ====================================================
+
+class MCPToolsListRequest(BaseModel):
+    method: str
+    params: Dict[str, Any] = Field(default_factory=dict)
+    id: Optional[int] = None
+    jsonrpc: str = "2.0"

@@ -1,19 +1,12 @@
 # app/routes/mcp.py
-from typing import Any # Added
-from fastapi import APIRouter, status, HTTPException
+from typing import Dict, Optional
+from fastapi import APIRouter, status, HTTPException, Response
+from pydantic import BaseModel, Field
 
-from openai import OpenAI
-import os
-import json
-from typing import List, Dict, Any
-
-from semantic_kernel.contents import ChatHistory, ChatMessageContent
-from semantic_kernel.connectors.ai.open_ai import OpenAIChatPromptExecutionSettings
-from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from ..llm import kernel
-from ..models import ChatRequest, ExecuteToolRequest
+from ..models import ExecuteToolRequest, MCPInitializeRequest, MCPToolCallRequest, MCPToolsListRequest
 
 ## ====================================================
 
@@ -25,263 +18,263 @@ router = APIRouter(
 
 ## ====================================================
 
-@router.get("/", response_model=dict, status_code=status.HTTP_200_OK, summary="MCP Availability and Plugin Details")
-async def mcp_availability():
+@router.post("/initialize", summary="Initialize the MCP API connection")
+async def initialize(request: MCPInitializeRequest):
     """
-    Returns a detailed list of available plugins, their functions, and descriptions.
+    Initialize the MCP connection with client information and protocol version.
+    This endpoint is typically called first by MCP clients.
     """
-    plugins_details = []
-    if kernel.plugins:
-        for plugin_name, plugin in kernel.plugins.items():
-            functions_details = []
-            for func_name, func_metadata in plugin.functions.items():
-                functions_details.append({
-                    "name": func_name,
-                    "description": func_metadata.description,
-                    "parameters": [p.name for p in func_metadata.parameters]
-                })
-            
-            plugins_details.append({
-                "name": plugin_name,
-                "functions": functions_details
-            })
-            
-    return {"status": "MCP is available", "plugins": plugins_details}
+    # Log client information
+    client_name = request.params.clientInfo.name
+    client_version = request.params.clientInfo.version
+
+    protocolVersion = "2024-11-05"
+    
+    print(f"[MCP] MCP initialized with: {client_name} {client_version}, protocol version {protocolVersion}")
+    
+    return {
+        "jsonrpc": "2.0",
+        "id": request.id,
+        "result": {
+            "protocolVersion": protocolVersion,
+            "capabilities": {
+                "tools": {}
+            },
+            "serverInfo": {
+                "name": "people-api-mcp-server",
+                "version": "1.0.0"
+            }
+        }
+    }
 
 ## ====================================================
 
-@router.post("/execute_tool", response_model=Any, status_code=status.HTTP_200_OK, summary="Execute a specific tool function") # Changed response_model to Any
-async def execute_tool(request: ExecuteToolRequest):
-    """
-    Executes a specific function from a Semantic Kernel plugin.
+@router.post("/notifications/initialized", summary="Handle initialized notification")
+async def notifications_initialized():
+    """Handle the initialized notification - no response needed for notifications"""
+    return Response(status_code=204)  # No Content
 
-    - **plugin_name**: The name of the plugin.
-    - **function_name**: The name of the function within the plugin.
-    - **arguments**: A dictionary of arguments to pass to the function.
-    - **Returns**: The direct result of the executed plugin function.
+## ====================================================
+
+@router.post("/notifications/cancelled", summary="Handle cancelled notification") 
+async def notifications_cancelled():
+    """Handle cancelled notifications - no response needed for notifications"""
+    return Response(status_code=204)  # No Content
+
+## ====================================================
+
+@router.post("/resources/list", summary="List resources")
+@router.get("/resources/list", summary="List resources")
+async def resources_list(request: Optional[dict] = None):
+    """Return empty resources list - this API doesn't provide resources"""
+    request_id = 1
+    if request and isinstance(request, dict) and 'id' in request:
+        request_id = request['id']
+    
+    return {
+        "jsonrpc": "2.0",
+        "id": request_id,
+        "result": {
+            "resources": []
+        }
+    }
+
+## ====================================================
+
+@router.post("/tools/list", summary="List available MCP tools")
+async def list_tools_post(request: MCPToolsListRequest):
+    """Handle POST requests to tools/list with JSON-RPC format"""
+    tools_list = []
+
+    if kernel.plugins:
+        for plugin_name, plugin in kernel.plugins.items():
+            for func_name, func_metadata in plugin.functions.items():
+                # Convert parameters to MCP inputSchema format
+                properties = {}
+                required_params = []
+                
+                for param in func_metadata.parameters:
+                    properties[param.name] = {
+                        "type": "string",  # Could enhance to detect actual types
+                        "description": param.description or f"Parameter {param.name}"
+                    }
+                    if getattr(param, 'required', False):
+                        required_params.append(param.name)
+                
+                # Add the tool in MCP format
+                tools_list.append({
+                    "name": func_name,
+                    "description": func_metadata.description or f"Function to {func_name}",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": properties,
+                        **({"required": required_params} if required_params else {})
+                    }
+                })
+    
+    # Return in proper MCP JSON-RPC format
+    return {
+        "jsonrpc": "2.0",
+        "id": request.id,
+        "result": {
+            "tools": tools_list
+        }
+    }
+
+## ====================================================
+
+@router.get("/tools/list", summary="List available MCP tools (GET)")
+async def list_tools_get():
+    """Handle GET requests to tools/list for backwards compatibility"""
+    tools_list = []
+
+    if kernel.plugins:
+        for plugin_name, plugin in kernel.plugins.items():
+            for func_name, func_metadata in plugin.functions.items():
+                # Convert parameters to MCP inputSchema format
+                properties = {}
+                required_params = []
+                
+                for param in func_metadata.parameters:
+                    properties[param.name] = {
+                        "type": "string",
+                        "description": param.description or f"Parameter {param.name}"
+                    }
+                    if getattr(param, 'required', False):
+                        required_params.append(param.name)
+                
+                # Add the tool in MCP format
+                tools_list.append({
+                    "name": func_name,
+                    "description": func_metadata.description or f"Function to {func_name}",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": properties,
+                        **({"required": required_params} if required_params else {})
+                    }
+                })
+    
+    # Return just the tools array for GET requests
+    return {
+        "tools": tools_list
+    }
+
+## ====================================================
+
+@router.post("/tools/call", status_code=status.HTTP_200_OK, summary="Call a specific tool/function")
+async def call_tool(request: MCPToolCallRequest):
+    """
+    Executes a specific tool function using the MCP format.
     """
     try:
-        if not kernel.plugins:
-            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Kernel plugins not loaded.")
-
-        if request.plugin_name not in kernel.plugins:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Plugin '{request.plugin_name}' not found. Available: {list(kernel.plugins.keys())}")
-        
-        plugin = kernel.plugins[request.plugin_name]
-        
-        if request.function_name not in plugin:
-            functions_in_plugin = [f.name for f in plugin.functions.values()]
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Function '{request.function_name}' not found in plugin '{request.plugin_name}'. Available functions: {functions_in_plugin}")
+        # Validate method
+        if request.method != "tools/call":
+            return {
+                "jsonrpc": "2.0",
+                "id": request.id or 1,
+                "error": {
+                    "code": -32601,
+                    "message": f"Invalid method: {request.method}, expected 'tools/call'"
+                }
+            }
             
-        kernel_function = plugin[request.function_name]
+        if not kernel.plugins:
+            return {
+                "jsonrpc": "2.0",
+                "id": request.id or 1,
+                "error": {
+                    "code": 503,
+                    "message": "Kernel plugins not loaded"
+                }
+            }
+        
+        # Extract function name and arguments from MCP request
+        function_name = request.params.name
+        arguments = request.params.arguments or {}
+        request_id = request.id or 1
+        
+        print(f"[MCP] Calling function: {function_name} with arguments: {arguments}")
+        
+        # Find the plugin containing this function
+        plugin_name = None
+        kernel_function = None
+        
+        for p_name, plugin in kernel.plugins.items():
+            if function_name in plugin:
+                plugin_name = p_name
+                kernel_function = plugin[function_name]
+                break
+        
+        # Validate function exists
+        if not kernel_function:
+            available_functions = []
+            for p_name, plugin in kernel.plugins.items():
+                for f_name in plugin.functions.keys():
+                    available_functions.append(f_name)
+            
+            return {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "error": {
+                    "code": 404,
+                    "message": f"Function '{function_name}' not found. Available: {available_functions}"
+                }
+            }
+        
+        print(f"[MCP] Found function '{function_name}' in plugin '{plugin_name}'")
         
         # Prepare arguments for the kernel function
-        kernel_args = KernelArguments(**request.arguments)
+        kernel_args = KernelArguments(**arguments)
         
         # Invoke the kernel function
         result = await kernel.invoke(kernel_function, arguments=kernel_args)
         
         # Process the result value
         response_value = result.value
-        # Plugins are expected to return JSON strings, but let's be safe
         if not isinstance(response_value, (str, int, float, bool, dict, list, type(None))):
             response_value = str(response_value)
-            
-        return response_value # Changed: Return the direct value
         
-    except HTTPException: # Re-raise HTTPExceptions directly
-        raise
+        print(f"[MCP] Function result: {response_value}")
+        
+        # Return in proper MCP format with content array
+        return {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "content": [
+                    {
+                        "type": "text", 
+                        "text": str(response_value) if not isinstance(response_value, str) else response_value
+                    }
+                ]
+            }
+        }
+        
     except Exception as e:
-        # Log the full error for debugging
-        print(f"Error in /mcp/execute_tool: {type(e).__name__} - {str(e)}")
-        # Optionally include traceback: import traceback; traceback.print_exc()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An unexpected error occurred while executing the tool: {str(e)}")
+        print(f"[MCP] Error in /mcp/tools/call: {type(e).__name__} - {str(e)}")
+        return {
+            "jsonrpc": "2.0",
+            "id": getattr(request, 'id', 1),
+            "error": {
+                "code": 500,
+                "message": f"An unexpected error occurred: {str(e)}"
+            }
+        }
 
 ## ====================================================
 
-@router.post("/chat", summary="Chat with LLM using Semantic Kernel and tools")
-async def chat(request: ChatRequest):
-    try:
-        # 1. Get system message from the SystemPrompt plugin if available
-        try:
-            if "SystemPrompt" in kernel.plugins and "get_system_prompt" in kernel.plugins["SystemPrompt"]:
-                system_prompt_function = kernel.plugins["SystemPrompt"]["get_system_prompt"]
-                system_prompt_result = await kernel.invoke(system_prompt_function)
-                # Check if the result has a value attribute
-                if hasattr(system_prompt_result, 'value'):
-                    # Check if the value is a dict with 'system_prompt' key
-                    if isinstance(system_prompt_result.value, dict) and 'system_prompt' in system_prompt_result.value:
-                        system_message = system_prompt_result.value['system_prompt']
-                    else:
-                        system_message = str(system_prompt_result.value)
-                else:
-                    system_message = str(system_prompt_result)
-            else:
-                system_message = "You are a helpful assistant with access to tools. Analyze the user's question and use the appropriate tools when needed to get information."
-        except Exception as e:
-            print(f"Error getting system prompt: {e}")
-            system_message = "You are a helpful assistant with access to tools. Analyze the user's question and use the appropriate tools when needed to get information."
-
-        # 2. Prepare the conversation history as a simple formatted string
-        conversation = f"System: {system_message}\n\n"
-        
-        # Add previous messages from request if any
-        for msg in request.chat_history:
-            if msg.get("role") == "user":
-                conversation += f"User: {msg.get('content', '')}\n"
-            elif msg.get("role") == "assistant":
-                conversation += f"Assistant: {msg.get('content', '')}\n"
-
-        # Add the current user query
-        conversation += f"User: {request.user_query}\n"
-        conversation += "Assistant: "
-        
-        # Check if PeopleCRUD plugin is available
-        tools = []
-        plugin = kernel.plugins["PeopleCRUD"]
-        
-        # Convert plugin functions to OpenAI tool format
-        for func_name, func_metadata in plugin.functions.items():
-            # Extract parameters for the function
-            parameters = {
-                "type": "object",
-                "properties": {}
-            }
-            
-            # Handle parameters properly
-            for param in func_metadata.parameters:
-                # Set default type to string if not specified
-                param_type = "string"
-                
-                # Add the parameter with proper type and description
-                parameters["properties"][param.name] = {
-                    "type": param_type,
-                    "description": param.description or f"Parameter {param.name}"
-                }
-            
-            # Create the tool definition with proper schema
-            tools.append({
-                "type": "function",
-                "function": {
-                    "name": f"{plugin.name}_{func_name}",
-                    "description": func_metadata.description or f"Function to {func_name}",
-                    "parameters": parameters
-                }
-            })
-        
-        # Make the API call with tools configuration
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        openai_response = client.chat.completions.create(
-            model=os.getenv("OPENAI_API_MODEL", "gpt-4o-mini"),
-            messages=[
-                {"role": "system", "content": system_message},
-                *[{"role": msg.get("role"), "content": msg.get("content", "")} for msg in request.chat_history],
-                {"role": "user", "content": request.user_query}
-            ],
-            tools=tools,
-            tool_choice="auto"
-        )
-        
-        # Handle the response, potentially including tool calls
-        assistant_message = openai_response.choices[0].message
-        
-        # Check if the model wants to call a tool
-        if hasattr(assistant_message, 'tool_calls') and assistant_message.tool_calls:
-            # The model wants to use a tool
-            tool_results = []
-            
-            # Process each tool call
-            for tool_call in assistant_message.tool_calls:
-                function_name = tool_call.function.name
-                function_args = json.loads(tool_call.function.arguments)
-                
-                # Extract plugin_name and actual function name
-                if "_" in function_name:
-                    plugin_name, func_name = function_name.split("_", 1)
-                else:
-                    # Handle case where naming is different
-                    plugin_name = "PeopleCRUD"  # Default plugin
-                    func_name = function_name
-                
-                print(f"Tool call: {plugin_name}.{func_name} with args: {function_args}")
-                
-                # Execute the function using the kernel
-                if plugin_name in kernel.plugins and func_name in kernel.plugins[plugin_name]:
-                    # Get the function from the plugin
-                    kernel_function = kernel.plugins[plugin_name][func_name]
-                    
-                    # Process arguments to ensure correct types
-                    processed_args = {}
-                    for param_name, param_value in function_args.items():
-                        # For now, we'll just ensure strings are strings and handle nulls
-                        if param_value is None:
-                            processed_args[param_name] = ""
-                        else:
-                            processed_args[param_name] = str(param_value)
-                    
-                    # Convert processed arguments to KernelArguments
-                    kernel_args = KernelArguments(**processed_args)
-                    
-                    # Call the function
-                    try:
-                        result = await kernel.invoke(kernel_function, arguments=kernel_args)
-                        if hasattr(result, 'value'):
-                            if result.value is None:
-                                tool_result = "Operation completed successfully."
-                            else:
-                                tool_result = str(result.value)
-                        else:
-                            tool_result = str(result)
-                    except Exception as e:
-                        print(f"Error executing {plugin_name}.{func_name}: {str(e)}")
-                        tool_result = f"Error executing function: {str(e)}"
-                else:
-                    tool_result = f"Function {plugin_name}.{func_name} not found"
-                
-                tool_results.append({
-                    "tool_call_id": tool_call.id,
-                    "role": "tool",
-                    "name": function_name,
-                    "content": tool_result
-                })
-            
-            # Create messages for further processing with the tool results
-            tool_messages = [
-                {"role": "system", "content": system_message},
-                *[{"role": msg.get("role"), "content": msg.get("content", "")} for msg in request.chat_history],
-                {"role": "user", "content": request.user_query},
-                assistant_message.model_dump(),  # Include the assistant's tool call message
-                *[{"role": "tool", "tool_call_id": result["tool_call_id"], "name": result["name"], "content": result["content"]} for result in tool_results]
-            ]
-            
-            # Send the tool results back to the model for a final response
-            final_response = client.chat.completions.create(
-                model=os.getenv("OPENAI_API_MODEL", "gpt-4o-mini"),
-                messages=tool_messages
-            )
-            
-            # Get the final response after tool usage
-            llm_response_content = final_response.choices[0].message.content or ""
-            
-            # Create complete chat history including tool usage
-            tool_usage_summary = "\n\n[Used tools: " + ", ".join([result["name"] for result in tool_results]) + "]"
-            current_turn_history = request.chat_history + [
-                {"role": "user", "content": request.user_query},
-                {"role": "assistant", "content": llm_response_content + tool_usage_summary}
-            ]
-        else:
-            # No tool calls, just get the text response
-            llm_response_content = assistant_message.content or ""
-            
-            # Create response history for continuity
-            current_turn_history = request.chat_history + [
-                {"role": "user", "content": request.user_query},
-                {"role": "assistant", "content": llm_response_content}
-            ]
-        
-        # We've already set llm_response_content and current_turn_history above
-        return {"llm_response": llm_response_content.strip(), "chat_history": current_turn_history}
-
-    except Exception as e:
-        print(f"Error in /mcp/chat: {type(e).__name__} - {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred: {str(e)}")
+@router.post("/prompts/list", summary="List prompts")
+@router.get("/prompts/list", summary="List prompts")
+async def prompts_list(request: Optional[dict] = None):
+    """Return empty prompts list - this API doesn't provide prompts"""
+    request_id = 1
+    if request and isinstance(request, dict) and 'id' in request:
+        request_id = request['id']
+    
+    return {
+        "jsonrpc": "2.0",
+        "id": request_id,
+        "result": {
+            "prompts": []
+        }
+    }

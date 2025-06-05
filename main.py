@@ -1,25 +1,24 @@
 """
 Main application file for the People API.
 """
+
+# Load environment variables from .env file
 from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
 from app import database
-from app.routes import api, health, mcp
-
-## ====================================================
-
-# Load environment variables from .env file
-load_dotenv()
+from app.routes import api, health, mcp, chat
 
 ## ====================================================
 
 # FastAPI app instance
 app = FastAPI(
-    title="People API - Refactored",
-    description="A simple API to manage a list of people, now refactored into modules.",
-    version="0.2.0",
+    title="People API - MCP Support",
+    description="A simple API to manage a list of people, now refactored into modules. With MCP Support",
+    version="1.0.0",
 )
 
 ## ====================================================
@@ -33,6 +32,7 @@ app.add_event_handler("shutdown", database.disconnect_db)
 # Include the routers
 app.include_router(api.router)
 app.include_router(health.router)
+app.include_router(chat.router)
 app.include_router(mcp.router)
 
 ## ====================================================

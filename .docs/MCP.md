@@ -13,59 +13,125 @@ This implementation uses Semantic Kernel's plugin architecture to expose functio
 
 ## API Endpoints
 
-The MCP API provides three main endpoints:
+### Core MCP Endpoints
 
-### 1. `/mcp/`
+#### 1. `/mcp/initialize`
 
-- **Method**: GET
-- **Description**: Returns information about available plugins and their functions.
-- **Purpose**: This endpoint can be used to discover the available plugins and their functions through a marketplace or orchestration.
-- **Response**: JSON object containing plugin names, functions, descriptions, and parameters.
+- **Method**: POST
+- **Description**: Initialize the connection with client information.
+- **Purpose**: This is the first endpoint called by MCP clients to establish a connection.
+- **Request Body**: JSON object following the JSON-RPC format.
+- **Example Request**:
+  ```json
+  {
+    "method": "initialize",
+    "params": {
+      "clientInfo": {
+        "name": "Claude Desktop",
+        "version": "1.0.0"
+      }
+    },
+    "id": 1,
+    "jsonrpc": "2.0"
+  }
+  ```
 - **Example Response**:
   ```json
   {
-    "status": "MCP is available",
-    "plugins": [
-      {
-        "name": "PeopleCRUD",
-        "functions": [
-          {
-            "name": "create_person",
-            "description": "Creates a new person in the system.",
-            "parameters": ["person_data_json"]
-          },
-          ...
-        ]
-      },
-      {
-        "name": "SystemPrompt",
-        "functions": [
-          {
-            "name": "get_system_prompt",
-            "description": "Provides a system prompt that informs the LLM about available tools and their usage.",
-            "parameters": []
-          }
-        ]
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+      "name": "People API - MCP Support",
+      "version": "1.0.0",
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "completions": false,
+        "tools": true,
+        "embeddings": false
       }
-    ]
+    }
   }
   ```
 
-### 2. `/mcp/execute_tool`
+#### 2. `/mcp/tools/list`
+
+- **Method**: POST (preferred) or GET
+- **Description**: Returns a list of available plugins and their functions in JSON-RPC format.
+- **Purpose**: This endpoint is used by clients to discover available tools.
+- **Request Body**: JSON-RPC formatted object for POST method.
+- **Example Request**:
+  ```json
+  {
+    "method": "tools/list",
+    "params": {},
+    "id": 1,
+    "jsonrpc": "2.0"
+  }
+  ```
+- **Response**: JSON-RPC formatted object with tool definitions in MCP format.
+
+#### 3. `/mcp/tools/call`
 
 - **Method**: POST
-- **Description**: Executes a specific function from a Semantic Kernel plugin.
-- **Purpose**: This endpoint will be used by the LLM to call specific functions from plugins.
-- **Request Body**: JSON object with `plugin_name`, `function_name`, and `arguments`.
-- **Response**: JSON object with the result of the function execution.
+- **Description**: Executes a specific tool function using JSON-RPC format.
+- **Purpose**: This endpoint is used by clients to call specific functions.
+- **Request Body**: JSON-RPC formatted object with method, params, and id.
+- **Example Request**: See examples in the "Example Payloads" section below
+- **Response**: JSON-RPC formatted object with the execution result formatted as content array or error details.
 
-### 3. `/mcp/chat`
+### Notification Endpoints
+
+#### 4. `/mcp/notifications/initialized`
 
 - **Method**: POST
-- **Description**: Interacts with the LLM using available tools.
-- **Purpose**: This endpoint is a testing endpoint for users to test plugins with.
-- **Request Body**: JSON object with `user_query` (the user's message) and optionally `chat_history` (previous messages).
-- **Response**: JSON object with the LLM's response and updated chat history.
+- **Description**: Handles client initialization notifications.
+- **Purpose**: Notification from client that initialization is complete.
+- **Request Body**: JSON-RPC notification object.
+- **Response**: No content (204 status code)
+
+#### 5. `/mcp/notifications/cancelled`
+
+- **Method**: POST
+- **Description**: Handles cancellation notifications.
+- **Purpose**: Notification from client that a request was cancelled.
+- **Request Body**: JSON-RPC notification object.
+- **Response**: No content (204 status code)
+
+### Resource and Prompt Endpoints
+
+#### 6. `/mcp/resources/list`
+
+- **Method**: GET or POST
+- **Description**: Returns a list of available resources (currently none).
+- **Purpose**: Used by clients to discover available resources.
+- **Request Body**: JSON-RPC formatted object for POST method.
+- **Response**: Empty resources list in JSON-RPC format.
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+      "resources": []
+    }
+  }
+  ```
+
+#### 7. `/mcp/prompts/list`
+
+- **Method**: GET or POST
+- **Description**: Returns a list of available prompts (currently none).
+- **Purpose**: Used by clients to discover available prompts.
+- **Request Body**: JSON-RPC formatted object for POST method.
+- **Response**: Empty prompts list in JSON-RPC format.
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+      "prompts": []
+    }
+  }
+  ```
 
 ## Available Plugins and Functions
 
@@ -120,81 +186,81 @@ Provides system prompts for the LLM.
 
 ## Example Payloads
 
-Here are helpful payloads you can use with the `/mcp/execute_tool` endpoint:
+### JSON-RPC Format (for `/mcp/tools/call`)
+
+Here are example payloads using the new JSON-RPC style format:
 
 **Getting the system prompt**
 ```json
 {
-  "plugin_name": "SystemPrompt",
-  "function_name": "get_system_prompt"
+  "method": "tools/call",
+  "params": {
+    "name": "get_system_prompt",
+    "plugin": "SystemPrompt",
+    "arguments": {}
+  },
+  "id": 1,
+  "jsonrpc": "2.0"
 }
 ```
 
 **Creating a new person**
 ```json
 {
-  "plugin_name": "PeopleCRUD",
-  "function_name": "create_person",
-  "arguments": { 
-    "person_data_json": "{\"first_name\": \"John\", \"last_name\": \"Doe\", \"age\": 30, \"email\": \"john.doe@example.com\"}"
-  }
+  "method": "tools/call",
+  "params": {
+    "name": "create_person",
+    "plugin": "PeopleCRUD",
+    "arguments": {
+      "person_data_json": "{\"first_name\": \"John\", \"last_name\": \"Doe\", \"age\": 30, \"email\": \"john.doe@example.com\"}"
+    }
+  },
+  "id": 1,
+  "jsonrpc": "2.0"
 }
 ```
 
 **Getting a specific person by ID**
 ```json
 {
-  "plugin_name": "PeopleCRUD",
-  "function_name": "get_person_by_id",
-  "arguments": { "person_id": 1 }
-}
-```
-
-**Getting all people**
-```json
-{
-  "plugin_name": "PeopleCRUD",
-  "function_name": "get_all_people"
+  "method": "tools/call",
+  "params": {
+    "name": "get_person_by_id",
+    "plugin": "PeopleCRUD",
+    "arguments": { "person_id": 1 }
+  },
+  "id": 1,
+  "jsonrpc": "2.0"
 }
 ```
 
 **Getting all people with pagination**
 ```json
 {
-  "plugin_name": "PeopleCRUD",
-  "function_name": "get_all_people",
-  "arguments": { "skip": 0, "limit": 10 }
-}
-```
-
-**Updating a person**
-```json
-{
-  "plugin_name": "PeopleCRUD",
-  "function_name": "update_person_by_id",
-  "arguments": { 
-    "person_id": 1,
-    "person_update_data_json": "{\"first_name\": \"Jane\", \"age\": 31}"
-  }
-}
-```
-
-**Deleting a person**
-```json
-{
-  "plugin_name": "PeopleCRUD",
-  "function_name": "delete_person_by_id",
-  "arguments": { "person_id": 1 }
+  "method": "tools/call",
+  "params": {
+    "name": "get_all_people",
+    "plugin": "PeopleCRUD",
+    "arguments": { "skip": 0, "limit": 10 }
+  },
+  "id": 1,
+  "jsonrpc": "2.0"
 }
 ```
 
 ## Usage with Chat
 
-The `/mcp/chat` endpoint enables interactive conversations where the LLM can dynamically choose to use tools when appropriate. Example request:
+The `/mcp/chat` endpoint enables interactive conversations where the LLM can dynamically choose to use tools when appropriate. Example request(s):
 
 ```json
 {
-  "user_query": "Please add a new person named Alice Smith who is 28 years old"
+  "user_query": "How many people are in the database?"
+}
+```
+
+```json
+{
+  "user_query": "Please add a new person named Alice Smith who is 28 years old."
 }
 ```
 

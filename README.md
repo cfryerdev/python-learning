@@ -6,7 +6,7 @@ A simple agentic microservice API to manage a list of people, built with Python,
 
 - [New to Python](./.docs/LEARNING.md) - Learning Python? Start here...
 - [The Solution](./.docs/SOLUTION.md) - A breakdown of the code solution
-- [Integration](./.docs/INTEGRATION.md) - Integrating the solution with AI platforms like Claude Desktop and Azure AI
+- [Claude Desktop](./.claude/README.md) - Sample integration with Claude Desktop
 - [LLM Integration](./.docs/LLM.md) - More information about the LLM integration (OpenAI & Semantic Kernel)
 - [MCP Integration](./.docs/MCP.md) - All things MCP
 - [Architecture Details](./.docs/ARCHITECTURE.md) - The architecture of the solution
@@ -22,8 +22,8 @@ A simple agentic microservice API to manage a list of people, built with Python,
 
 1.  **Create a virtual environment (recommended):**
     ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
+    python3 -m venv venv
+    source venv/bin/activate
     ```
 
 2.  **Install dependencies:**
