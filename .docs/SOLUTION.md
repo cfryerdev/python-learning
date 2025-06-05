@@ -41,6 +41,7 @@ This document provides an overview of the project structure, detailing the purpo
 │       ├── __init__.py                     # Makes the 'routes' directory a Python package
 │       ├── api.py                          # FastAPI router for people CRUD endpoints
 │       ├── health.py                       # Health check endpoints
+│       ├── chat.py                         # Chat endpoint
 │       └── mcp.py                          # Model Context Protocol endpoints
 ├── main.py                                 # Main FastAPI application entry point
 ├── people.db                               # Default SQLite database file (Gitignored)
