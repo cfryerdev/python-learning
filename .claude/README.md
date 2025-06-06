@@ -142,6 +142,16 @@ Add this configuration to your `claude_desktop_config.json` file:
 <img src="./claude_desktop_002.png  " alt="Claude Desktop" />
 <img src="./claude_desktop_003.png  " alt="Claude Desktop" />
 
+Using Claude to call a tool
+
+<img src="./claude_desktop_004.png  " alt="Claude Desktop" />
+<img src="./claude_desktop_005.png  " alt="Claude Desktop" />
+<img src="./claude_desktop_006.png  " alt="Claude Desktop" />
+
+Request / Response
+
+<img src="./claude_desktop_007.png  " alt="Claude Desktop" />
+
 ## Troubleshooting
 
 ### Common Issues
