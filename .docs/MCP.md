@@ -25,11 +25,10 @@ An MCP server typically exposes the following standard endpoint types:
    - `/mcp/notifications/cancelled`: Processes request cancellation notifications
 
 3. **Resource Endpoints**:
-   - `/mcp/resources/list`: Provides access to available resources
+   - `/mcp/resources/list`: Lists all available resources
+   - `/mcp/resources/get`: Provides access to a specific resource
    - `/mcp/prompts/list`: Returns available prompts for LLMs
-
-4. **Chat Endpoints**:
-   - `/mcp/chat`: Enables interactive conversations where the LLM can use tools dynamically
+   - `/mcp/prompts/get`: Provides access to a specific prompt
 
 These standardized endpoints create a consistent interface for AI models to communicate with external services and access functionality beyond their training data.
 
@@ -109,11 +108,21 @@ This diagram shows how a client application interacts with an MCP server during 
       "capabilities": {
         "completions": false,
         "tools": true,
-        "embeddings": false
+        "embeddings": false,
+        "resources": true,
+        "prompts": true,
+        ...
       }
     }
   }
   ```
+
+- **Capability Details**:
+  - `completions`: Indicates whether the server supports direct text completion generation endpoints.
+  - `tools`: Indicates whether the server supports tool calling functionality for AI models.
+  - `embeddings`: Indicates whether the server can generate vector embeddings for text.
+  - `resources`: Indicates whether the server provides access to external resources like files or databases.
+  - `prompts`: Indicates whether the server offers predefined prompt templates for use with AI models.
 
 #### 2. `/mcp/tools/list`
 
