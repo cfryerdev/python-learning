@@ -2,23 +2,20 @@
 
 ## What is MCP?
 
-The Model Context Protocol (MCP) is a standardized interface for AI language models to interact with external tools, data sources, and services. In the context of AI applications, MCP enables:
+The Model Context Protocol (MCP) is a standardized interface for AI language models to interact with external tools, data sources, and services. MCP is built on top of function calling and extends it with additional capabilities.
 
 1. **Tool Usage**: Allowing language models to call external functions when needed to complete tasks.
 2. **Contextual Understanding**: Providing AI models with additional context beyond their training data.
 3. **Standardized Communication**: Establishing a consistent protocol for AI systems to communicate with external services.
-4. **Plugin Architecture**: Supporting an extensible design where new capabilities can be added as plugins.
 
-This implementation uses Semantic Kernel's plugin architecture to expose functionality to large language models (LLMs), enabling them to perform actions like creating, retrieving, updating, and deleting people records through a well-defined API.
+## MCP Endpoints
 
-## Available MCP Endpoints
-
-An MCP server typically exposes the following standard endpoint types:
+An MCP (REST) server typically exposes the following standard endpoint types:
 
 1. **Core Endpoints**:
-   - `/mcp/initialize`: Establishes initial connection with client information
-   - `/mcp/tools/list`: Returns available tools and functions in the MCP
-   - `/mcp/tools/call`: Executes specific tool functions
+   - `/mcp/initialize`: Establishes initial connection with client information, helps the model understand which capabilities are available.
+   - `/mcp/tools/list`: Returns available tools and functions in the MCP, helps the model understand what tools are available.
+   - `/mcp/tools/call`: Executes specific tool functions, allows the model to call tools when needed.
 
 2. **Notification Endpoints**:
    - `/mcp/notifications/initialized`: Handles client initialization notifications
@@ -32,7 +29,45 @@ An MCP server typically exposes the following standard endpoint types:
 
 These standardized endpoints create a consistent interface for AI models to communicate with external services and access functionality beyond their training data.
 
-### MCP Endpoint Flow for Chat Interactions
+## Semantic Kernel, does it have MCP?
+
+Yes, Semantic Kernel has MCP support built-in, with the caveat that if you use stdio as your transport layer, its fully automated and you don't have to worry about any of the MCP endpoints, however if you wish to expose your MCP functionality over REST, you will need to create the endpoints and DTOs yourself.
+
+## So, MCP all the things right?
+
+Not really, MCP is really cool and powerful but... In my opinion, it is best used for workflow automation that require interaction with external tools, data sources, and services. Given the security concerns, it is not my recommendation to use MCP for sensitive data or for production applications where performance and authorization is a concern. See **Security Concerns** below.
+
+## Security Concerns
+
+MCP introduces several categories of security concerns, while this is not an exhaustive list, but these are my primary concerns:
+
+**Access Control and Permissions**
+
+MCPs can grant language models access to external systems, databases, APIs, and local resources. Without proper permission boundaries, a compromised or malicious MCP could potentially access sensitive data, modify critical systems, or perform unauthorized actions. The challenge is implementing granular access controls that limit what each MCP can do while maintaining functionality.
+
+**Code Execution Risks**
+
+Many MCPs involve executing code or commands on behalf of the model, whether through direct code execution, shell commands, or API calls. This creates risks around code injection, where malicious input could be crafted to execute unintended commands. Sandboxing and input validation become critical for these types of MCPs.
+
+**Data Exposure and Privacy**
+
+MCPs that handle sensitive data (personal information, business data, credentials) create potential exposure points. There's risk of data leakage through logs, error messages, or insecure transmission. Additionally, the model itself might inadvertently expose sensitive information it accessed through MCPs in its responses.
+
+**Input Validation and Injection**
+
+MCPs that process user input or model-generated content are vulnerable to various injection attacks. This includes SQL injection if interacting with databases, command injection for system operations, or prompt injection where malicious prompts could manipulate the MCP's behavior.
+
+## Authentication
+
+Authentication with MCPs is a complex topic, and there are several approaches you can take to secure your MCP server and its interactions with external services. Here are some common patterns:
+
+**Trusted Service Approach:** The recommended pattern is to configure your MCP server as a trusted service that manages credentials securely. The server handles all authentication details internally, while the AI model simply makes requests through the MCP interface without needing to know about underlying auth mechanisms.
+
+**OAuth Integration:** OAuth authentication happens at the transport layer between your MCP server and external services. When a user needs to authenticate, the MCP server can return a clickable authorization URL that opens the OAuth provider's login page. Once the user completes authentication, the server stores the resulting access and refresh tokens securely (typically encrypted in a local database or secure file). The MCP server then automatically handles token refresh and includes valid tokens in API requests, all transparent to the AI model.
+
+**Mutual TLS (mTLS):** For high-security environments, mTLS operates at the transport layer where both the MCP server and external service authenticate each other using certificates during the TLS handshake. This provides strong cryptographic authentication before any application data is exchanged and is particularly useful for enterprise or financial services integrations.
+
+## MCP Endpoint Flow for Chat Interactions
 
 The following diagram illustrates the typical flow of endpoint calls when interacting with a chatbot that uses MCP:
 
@@ -72,9 +107,9 @@ sequenceDiagram
 
 This diagram shows how a client application interacts with an MCP server during a chat session, including the initialization process, tool discovery, and the dynamic use of tools during conversation.
 
-## API Endpoints
+# Technical Breakdown
 
-### Core MCP Endpoints
+## Core MCP Endpoints
 
 #### 1. `/mcp/initialize`
 
@@ -204,57 +239,6 @@ This diagram shows how a client application interacts with an MCP server during 
   }
   ```
 
-## Available Plugins and Functions
-
-### 1. PeopleCRUD Plugin
-
-Provides CRUD operations for managing people records.
-
-#### Functions:
-
-1. `create_person`
-   - **Description**: Creates a new person in the system.
-   - **Parameters**: 
-     - `person_data_json`: JSON string with required fields 'first_name', 'last_name' and optional fields 'age', 'email'.
-   - **Returns**: Details of the created person.
-
-2. `get_person_by_id`
-   - **Description**: Retrieves a specific person by their unique ID.
-   - **Parameters**: 
-     - `person_id`: Integer ID of the person to retrieve.
-   - **Returns**: Person details if found.
-
-3. `get_all_people`
-   - **Description**: Retrieves a list of all people with pagination support.
-   - **Parameters**: 
-     - `skip`: Number of records to skip (default: 0).
-     - `limit`: Maximum number of records to return (default: 100).
-   - **Returns**: List of people.
-
-4. `update_person_by_id`
-   - **Description**: Updates an existing person by their unique ID.
-   - **Parameters**: 
-     - `person_id`: Integer ID of the person to update.
-     - `person_update_data_json`: JSON string with fields to update ('first_name', 'last_name', 'age', 'email').
-   - **Returns**: Updated person details.
-
-5. `delete_person_by_id`
-   - **Description**: Deletes a person by their unique ID.
-   - **Parameters**: 
-     - `person_id`: Integer ID of the person to delete.
-   - **Returns**: Confirmation message.
-
-### 2. SystemPrompt Plugin
-
-Provides system prompts for the LLM.
-
-#### Functions:
-
-1. `get_system_prompt`
-   - **Description**: Returns a system prompt string that informs the LLM about available tools and their usage.
-   - **Parameters**: None
-   - **Returns**: Detailed system prompt text.
-
 ## Example Payloads
 
 ### JSON-RPC Format (for `/mcp/tools/call`)
@@ -318,47 +302,3 @@ Here are example payloads using the new JSON-RPC style format:
   "jsonrpc": "2.0"
 }
 ```
-
-## Usage with Chat
-
-The `/mcp/chat` endpoint enables interactive conversations where the LLM can dynamically choose to use tools when appropriate. Example request(s):
-
-```json
-{
-  "user_query": "How many people are in the database?"
-}
-```
-
-```json
-{
-  "user_query": "Please add a new person named Alice Smith who is 28 years old."
-}
-```
-
-You are welcome to pass through conversation history to the LLM to help it understand context.
-
-```json
-{
-  "user_query": "Show me the details of that user",
-  "chat_history": [
-    {
-      "role": "user",
-      "content": "How many users do we have with the last name Fryer, and whats the ids?"
-    },
-    {
-      "role": "assistant",
-      "content": "There is 1 user with the last name Fryer. The user's ID is 1.\n\n[Used tools: PeopleCRUD_get_all_people]"
-    }
-  ]
-}
-```
-
-## Extending MCP with New Plugins
-
-To add new plugins to this MCP implementation:
-
-1. Create a new plugin class with methods decorated with `@kernel_function`
-2. Add detailed descriptions for each function using the decorator parameters
-3. Define parameter metadata using `KernelParameterMetadata`
-4. Register your plugin with the kernel in `app/llm.py`
-5. Update the system prompt in `SystemPromptPlugin` to describe the new functionality
